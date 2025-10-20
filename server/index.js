@@ -1,5 +1,5 @@
 import express from "express";
-import mongoose, { get } from "mongoose";
+import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
@@ -8,24 +8,63 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+let requestCount = 0;
+
 const connectDB = async () => {
-    try{
+    try {
         const conn = await mongoose.connect(process.env.MONGODB_URL);
-        if(conn){
+        if (conn) {
             console.log("MongoDB connected");
         }
     }
-    catch(error){
+    catch (error) {
         console.error("MongoDB connection error:", error)
     }
 }
+app.get("/api/request-count", (req, res) => {
+    res.json({requestCount})
+})
+
+app.use((req, res, next) => {
+    requestCount++;
+    next();
+})
 
 app.get("/health", (req, res) => {
     res.json({
-        success : true,
-        message : "Server is up and running...",
+        success: true,
+        message: "Server is up and running...",
     })
 })
+
+const checkHeaderKey = (req, res, next) => {
+    const { api_token } = req.headers;
+    console.log("Checking API key : ", api_token);
+
+    if (api_token == "admin") {
+        console.log("API Key Valid");
+        next();
+    } else {
+        console.log("API Key Invalid");
+        res.status(401).json({ message: "Unauthorized" });
+    }
+};
+
+app.use(checkHeaderKey);
+
+app.get("/api/test1",
+    (req, res) => {
+        console.log("Actual Controller Test 1 Called");
+        res.json({message : "Test1 Route Reached"});
+    }
+)
+
+app.get("/api/test2",
+    (req, res) => {
+        console.log("Actual Controller Test 2 Called");
+        res.json({message : "Test2 Route Reached"});
+    }
+)
 
 const PORT = process.env.PORT || 8080;
 

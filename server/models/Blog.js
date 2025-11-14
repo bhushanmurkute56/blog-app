@@ -5,9 +5,7 @@ const blogSchema = new Schema({
     content : {type : String, required : true},
     status :
     {   
-        type : String, 
-        default : "draft",
-        enum : ["draft", "published", "archived"],
+        type : String, default : "draft", enum : ["draft", "published", "archived"],
     },
     category : { type : String, required : true },
     publishedAt : { type : Date },

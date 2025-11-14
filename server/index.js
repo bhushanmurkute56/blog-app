@@ -2,13 +2,12 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import { postLogin, postSignup } from "./Controllers/user.js";
 dotenv.config();
 
 const app = express();
 app.use(express.json());
 app.use(cors());
-
-let requestCount = 0;
 
 const connectDB = async () => {
     try {
@@ -21,14 +20,8 @@ const connectDB = async () => {
         console.error("MongoDB connection error:", error)
     }
 }
-app.get("/api/request-count", (req, res) => {
-    res.json({requestCount})
-})
 
-app.use((req, res, next) => {
-    requestCount++;
-    next();
-})
+// app.use((req, res) => {})
 
 app.get("/health", (req, res) => {
     res.json({
@@ -37,16 +30,20 @@ app.get("/health", (req, res) => {
     })
 })
 
-const checkHeaderKey = (req, res, next) => {
-    const { api_token } = req.headers;
-    console.log("Checking API key : ", api_token);
+app.post("/signup", postSignup);
+app.post("/login", postLogin);
 
-    if (api_token == "admin") {
-        console.log("API Key Valid");
+const checkHeaderKey = (req, res, next) => {
+    const {api_token} = req.headers;
+    console.log("Checking API Token:", api_token);
+
+    if(api_token == "admin") {
+        console.log("Api Token is valid");
         next();
-    } else {
-        console.log("API Key Invalid");
-        res.status(401).json({ message: "Unauthorized" });
+    }
+    else {
+        console.log("Api Token is invalid");
+        res.status(401).json({message : "Unauthorized"});
     }
 };
 
@@ -54,16 +51,20 @@ app.use(checkHeaderKey);
 
 app.get("/api/test1",
     (req, res) => {
-        console.log("Actual Controller Test 1 Called");
-        res.json({message : "Test1 Route Reached"});
-    }
+        console.log("Actual Controller Test 1");
+        res.json({
+            message: "Test 1 Route Reached Successfully!"
+        });
+    },
 )
 
 app.get("/api/test2",
     (req, res) => {
-        console.log("Actual Controller Test 2 Called");
-        res.json({message : "Test2 Route Reached"});
-    }
+        console.log("Actual Controller Test 2");
+        res.json({
+            message: "Test 2 Route Reached Successfully!"
+        });
+    },
 )
 
 const PORT = process.env.PORT || 8080;
